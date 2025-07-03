@@ -3,7 +3,7 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
-const chapterRoutes = require('./routes/chapterRoutes');
+const deviceRoutes = require('./routes/deviceRoutes');
 const stoveDataRoutes = require('./routes/stoveDataRoutes');
 const modeHistoryRoutes = require('./routes/modeHistoryRoutes');
 const stoveRoutes = require('./routes/stoveRoutes');
@@ -18,7 +18,7 @@ app.use(cors());
 // Routes
 app.use('/api', authRoutes);
 app.use('/api', userRoutes);
-app.use('/api', chapterRoutes);
+app.use('/api', deviceRoutes);
 app.use('/api/stove-data', stoveDataRoutes);
 app.use('/api/mode-history', modeHistoryRoutes);
 app.use('/api/stoves', stoveRoutes);

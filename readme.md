@@ -1,247 +1,237 @@
-# **Express.js with MySQL: Authentication, CRUD, and Association Chapters**
+# EDEN KITCHEN – Backend API (Express + MySQL)
 
-This project is a comprehensive example of building a RESTful API using **Express.js** and **MySQL**. It includes features like **user authentication**, **CRUD operations for users**, and **association chapters** (e.g., Robotics Chapter, Gaming Chapter, etc.). This project is designed to help students learn Express.js, MySQL, and REST API development in a structured and modular way.
-
----
-
-## **Features**
-1. **User Authentication**:
-   - Register a new user.
-   - Login and generate a JWT token.
-   - Protected routes using JWT authentication.
-
-2. **User CRUD Operations**:
-   - Create, read, update, and delete users.
-
-3. **Association Chapters**:
-   - Create, read, update, and delete chapters.
-   - Add users to chapters.
-   - Retrieve all users in a specific chapter.
-
-4. **Modular Code Structure**:
-   - Organized into separate files and folders for better maintainability.
+This is the backend service for the **Eden Kitchen** smart stove system. Built with **Node.js**, **Express**, and **MySQL**, it supports a React-based frontend and provides core features such as user authentication, smart stove (device) registration, fuel mode logging, and service request management.
 
 ---
 
-## **Technologies Used**
+## Table of Contents
+
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Setup Instructions](#setup-instructions)
+- [Database Schema](#database-schema)
+- [API Endpoints](#api-endpoints)
+- [Authentication Header Format](#authentication-header-format)
+- [Testing](#testing)
+- [License](#license)
+
+---
+
+## Features
+
+1. **User Authentication**
+   - JWT-based token generation and validation
+   - Login and registration endpoints
+   - Middleware-protected routes
+
+2. **Device Management**
+   - Register smart stove devices
+   - Retrieve devices by user or globally
+
+3. **Mode History**
+   - Track fuel mode switches (solar/biogas)
+   - View historical data by device
+
+4. **Service Requests**
+   - Submit and view installation, repair, or battery replacement requests
+
+5. **User-Device Mapping**
+   - Many-to-many relationship support via `user_devices` junction table
+
+---
+
+## Tech Stack
+
 - **Backend**: Node.js, Express.js
-- **Database**: MySQL
-- **Authentication**: JSON Web Tokens (JWT)
-- **Password Hashing**: bcryptjs
-- **Environment Variables**: dotenv
-- **Development Tool**: Nodemon
+- **Database**: MySQL (using `mysql2` with promise API)
+- **Authentication**: JWT (jsonwebtoken)
+- **Password Security**: bcryptjs
+- **Environment Management**: dotenv
+- **Dev Tooling**: Nodemon
 
 ---
 
-## **Project Structure**
-```
-express-mysql-app/
+## Project Structure
+
+eden-kitchen-backend/
 ├── .env
-├── package.json
 ├── server.js
+├── package.json
 ├── config/
-│   └── db.js
+│ └── db.js
 ├── controllers/
-│   ├── authController.js
-│   ├── userController.js
-│   └── chapterController.js
+│ ├── authController.js
+│ ├── userController.js
+│ ├── deviceController.js
+│ ├── modeHistoryController.js
+│ └── serviceRequestController.js
 ├── middleware/
-│   └── authMiddleware.js
+│ └── authMiddleware.js
 ├── routes/
-│   ├── authRoutes.js
-│   ├── userRoutes.js
-│   └── chapterRoutes.js
+│ ├── authRoutes.js
+│ ├── userRoutes.js
+│ ├── deviceRoutes.js
+│ ├── modeHistoryRoutes.js
+│ └── serviceRequestRoutes.js
 └── models/
-    ├── userModel.js
-    └── chapterModel.js
-```
+├── userModel.js
+├── deviceModel.js
+├── modeHistory.js
+├── serviceRequest.js
+└── userDevice.js
 
 ---
 
-## **Setup Instructions**
+## Setup Instructions
 
-### **1. Prerequisites**
-- Install [Node.js](https://nodejs.org/) (v16 or higher).
-- Install [MySQL](https://dev.mysql.com/downloads/installer/).
-- Install a REST client like [Postman](https://www.postman.com/downloads/) or use `curl` for testing.
+### 1. Prerequisites
 
-### **2. Clone the Repository**
+- [Node.js](https://nodejs.org/)
+- [MySQL Server](https://dev.mysql.com/)
+- A REST API client (e.g., Thunder Client, Postman)
+
+### 2. Clone the Repository
+
 ```bash
-git clone https://github.com/musasizi/express-mysql-app.git
-cd express-mysql-app
-```
+git clone https://github.com/your-org/eden-kitchen-backend.git
+cd eden-kitchen-backend
 
-### **3. Install Dependencies**
-```bash
+### 3. Install Dependencies
 npm install
-```
 
-### **4. Set Up the Database**
-1. Log in to MySQL:
-   ```bash
-   mysql -u root -p
-   ```
+### 4. Configure Environment Variables
+Create a .env file in the root directory with the following content:
 
-2. Create the database and tables:
-   ```sql
-   CREATE DATABASE express_auth;
-   USE express_auth;
-
-   CREATE TABLE users (
-     id INT AUTO_INCREMENT PRIMARY KEY,
-     username VARCHAR(255) NOT NULL UNIQUE,
-     password VARCHAR(255) NOT NULL,
-     email VARCHAR(255) NOT NULL UNIQUE,
-     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-   );
-
-   CREATE TABLE chapters (
-     id INT AUTO_INCREMENT PRIMARY KEY,
-     name VARCHAR(255) NOT NULL UNIQUE,
-     description TEXT,
-     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-   );
-
-   CREATE TABLE user_chapters (
-     user_id INT,
-     chapter_id INT,
-     PRIMARY KEY (user_id, chapter_id),
-     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-     FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE CASCADE
-   );
-   ```
-
-### **5. Configure Environment Variables**
-Create a `.env` file in the root directory and add the following:
-```
+PORT=3000
 DB_HOST=localhost
 DB_USER=root
-DB_PASSWORD=yourpassword
-DB_DATABASE=express_auth
-JWT_SECRET=yourjwtsecretkey
-PORT=3000
-```
+DB_PASSWORD=your_password
+DB_NAME=eden_kitchen
+JWT_SECRET=your_super_secret_key
 
-### **6. Run the Application**
-```bash
+### 5. Create the Database and Tables
+Login to MySQL and run:
+
+CREATE DATABASE eden_kitchen;
+USE eden_kitchen;
+
+CREATE TABLE users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(255) NOT NULL UNIQUE,
+  password VARCHAR(255) NOT NULL,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE devices (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  description TEXT,
+  user_id INT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE user_devices (
+  user_id INT,
+  device_id INT,
+  PRIMARY KEY (user_id, device_id),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (device_id) REFERENCES devices(id) ON DELETE CASCADE
+);
+
+CREATE TABLE mode_history (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  stove_id INT,
+  mode ENUM('solar', 'biogas'),
+  timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE service_requests (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  stove_id INT,
+  user_id INT,
+  type VARCHAR(50),
+  description TEXT,
+  status VARCHAR(20) DEFAULT 'pending',
+  requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+### 6. Start the Server
 npm start
-```
 
-The server will start on `http://localhost:3000`.
-
----
-
-## **API Endpoints**
-
-### **Authentication**
-- **Register a User**: `POST /api/register`
-  ```json
-  {
-    "username": "john_doe",
-    "password": "password123",
-    "email": "john@example.com"
-  }
-  ```
-
-- **Login**: `POST /api/login`
-  ```json
-  {
-    "username": "john_doe",
-    "password": "password123"
-  }
-  ```
-
-### **Users**
-- **Get All Users**: `GET /api/users` (Protected)
-- **Update a User**: `PUT /api/users/:id` (Protected)
-- **Delete a User**: `DELETE /api/users/:id` (Protected)
-
-### **Chapters**
-- **Create a Chapter**: `POST /api/chapters` (Protected)
-  ```json
-  {
-    "name": "Robotics Chapter",
-    "description": "A chapter for robotics enthusiasts."
-  }
-  ```
-
-- **Get All Chapters**: `GET /api/chapters`
-- **Get Chapter by ID**: `GET /api/chapters/:id`
-- **Update a Chapter**: `PUT /api/chapters/:id` (Protected)
-- **Delete a Chapter**: `DELETE /api/chapters/:id` (Protected)
-- **Add User to Chapter**: `POST /api/chapters/add-user` (Protected)
-  ```json
-  {
-    "userId": 1,
-    "chapterId": 1
-  }
-  ```
-
-- **Get Users in a Chapter**: `GET /api/chapters/:id/users` (Protected)
+The server will run on http://localhost:3000.
 
 ---
 
-## **Testing the API**
-Use a tool like **Postman** or **cURL** to test the endpoints. Here are some examples:
+## API Endpoints
+### Auth
 
-### **Register a User**
-```bash
-curl -X POST http://localhost:3000/api/register \
--H "Content-Type: application/json" \
--d '{
-  "username": "john_doe",
+POST /api/register
+POST /api/login
+
+### Users
+
+GET    /api/users           # Get all users (protected)
+PUT    /api/users/:id       # Update user
+DELETE /api/users/:id       # Delete user
+
+### Devices
+
+GET    /api/devices                 # Get all devices
+POST   /api/devices                # Register a new device
+GET    /api/devices/:user_id       # Get devices associated with a user
+
+### Mode History
+
+POST /api/mode-history              # Log a mode switch
+GET  /api/mode-history/:stove_id   # Get mode history for a stove
+
+### Service Requests
+
+POST /api/service-request               # Submit a request
+GET  /api/service-request/:user_id     # View user’s requests
+
+### Authentication Header Format
+For protected routes, add the following header:
+
+Authorization: Bearer <your_token>
+
+Tokens are issued upon successful login and required for accessing secured endpoints.
+
+### Testing
+Use tools like Thunder Client or Postman to test API requests.
+
+### Register
+
+POST /api/register
+
+{
+  "username": "eden_user",
   "password": "password123",
-  "email": "john@example.com"
-}'
-```
+  "email": "eden@example.com"
+}
 
-### **Login**
-```bash
-curl -X POST http://localhost:3000/api/login \
--H "Content-Type: application/json" \
--d '{
-  "username": "john_doe",
+### Login
+
+POST /api/login
+
+{
+  "username": "eden_user",
   "password": "password123"
-}'
-```
+}
 
-### **Get All Users (Protected)**
-```bash
-curl -X GET http://localhost:3000/api/users \
--H "Authorization: Bearer <token>"
-```
+### Add Device
 
----
+POST /api/devices
 
-## **Learning Objectives**
-1. **Express.js Basics**:
-   - Routing, middleware, and request handling.
-2. **MySQL Integration**:
-   - Connecting to MySQL, executing queries, and managing relationships.
-3. **Authentication**:
-   - Implementing JWT-based authentication.
-4. **Modular Code Structure**:
-   - Organizing code into controllers, models, and routes.
-5. **REST API Design**:
-   - Designing and implementing RESTful endpoints.
+{
+  "name": "Main Kitchen Stove",
+  "description": "Biogas + Solar hybrid stove",
+  "user_id": 1
+}
+
+### License
+This project is licensed under the MIT License.
 
 ---
-
-## **Contributing**
-Feel free to contribute to this project by opening issues or submitting pull requests. Your feedback and improvements are welcome!
-
----
-
-## **License**
-This project is open-source and available under the [MIT License](LICENSE).
-
----
-
-## **Author**
-[MUSASIZI KENNETH]
-[github.com/musasizi]
-[kennymusasizi@gmail.com]
-
----
-
-Happy Coding! 🚀
