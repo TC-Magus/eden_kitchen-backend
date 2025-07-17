@@ -22,7 +22,7 @@ app.use('/api', deviceRoutes);
 app.use('/api/stove-data', stoveDataRoutes);
 app.use('/api/mode-history', modeHistoryRoutes);
 app.use('/api/stoves', stoveRoutes);
-app.use('/api/service-request', serviceRequestRoutes);
+app.use('/api/service-requests', serviceRequestRoutes);
 
 // Start the server
 const PORT = process.env.PORT || 3000;
